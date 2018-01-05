@@ -21,7 +21,7 @@ visualize_every = 10
 base_lr = 0.000001
 gamma = 0.1
 stepsize = 100000
-display = 20
+display = 1
 # max_iter = 450000
 momentum = 0.9
 weight_decay = 0.0005
@@ -109,6 +109,8 @@ class regressor_train:
     def step(self):
         images, targets, bboxes = self.regressor.images, self.regressor.targets, self.regressor.bboxes
 
+        self.logger.info('images: %d' % len(images))
+
         x1  = torch.from_numpy(images).float()
         x2  = torch.from_numpy(targets).float()
         y   = torch.from_numpy(bboxes).float()
@@ -121,7 +123,7 @@ class regressor_train:
             x1, x2, y = Variable(x1), Variable(x2), Variable(y, requires_grad=False)
 
         # zero the parameter gradients
-        self.regressor.optimizer.zero_grad()
+        self.optimizer.zero_grad()
 
         # forward
         output = self.regressor.model(x1, x2)
@@ -129,7 +131,7 @@ class regressor_train:
 
         # backward + optimize
         loss.backward()
-        self.regressor.optimizer.step()
+        self.optimizer.step()
 
         # statistics
         if self.current_step % display == 0:
