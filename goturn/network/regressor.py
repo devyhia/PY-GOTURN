@@ -10,36 +10,59 @@ import numpy as np
 import sys
 import cv2
 from ..helper import config
-sys.path.insert(0, config.CAFFE_PATH)
-import caffe
+
+# Torch Imports
+import torch
+import torchvision
+from torch.autograd import Variable
+from .GoNet import GoNet
+
+use_gpu = torch.cuda.is_available()
+
+if use_gpu:
+    print('==> GPU is available :)')
 
 class regressor:
     """Regressor Class"""
 
-    def __init__(self, deploy_proto, caffe_model, gpu_id, num_inputs,
-            do_train, logger, solver_file=None):
+    def __init__(self, num_inputs, logger, train=True, pretrained_model=None):
         """TODO: to be defined"""
 
         self.num_inputs = num_inputs
         self.logger = logger
-        self.caffe_model_ = caffe_model
+        self.pretrained_model = pretrained_model
         self.modified_params_ = False
         self.mean = [104, 117, 123]
         self.modified_params = False
-        self.solver_file = None
-
-        if solver_file:
-            self.solver_file = solver_file
-        self.setupNetwork(deploy_proto, caffe_model, gpu_id, do_train)
-
-    def reshape_image_inputs(self, num_images):
-        """TODO: Docstring for reshape_image_inputs.
-        :returns: TODO
-        """
+        self.train = train
         
-        net = self.net
-        net.blobs['image'].reshape(num_images, self.channels, self.height, self.width)
-        net.blobs['target'].reshape(num_images, self.channels, self.height, self.width)
+        self.model = GoNet()
+        self.loss_fn = torch.nn.L1Loss()
+        
+        if pretrained_model:
+            logger.info("=> loading checkpoint '{}'".format(pretrained_model))
+            checkpoint = torch.load(pretrained_model)
+            self.model.load_state_dict(checkpoint)
+        
+        if use_gpu:
+            self.model = self.model.cuda()
+            loss_fn = self.loss_fn.cuda()
+
+        if train == True:
+            logger.info('===> Phase: Train')
+            self.model.train()
+        else:
+            logger.info('===> Phase: Test')
+            self.model.eval()
+
+        self.num_inputs = 1
+        self.channels = 3
+        self.height = 227
+        self.width = 227
+
+        # We are trying to change a Caffe model to PyTorch model.
+        # We define self.targets, self.images and self.bbox as if they were blobs.
+        self.images, self.targets, self.bboxes = None, None, None
 
 
     def set_images(self, images, targets):
@@ -47,8 +70,17 @@ class regressor:
         :returns: TODO
         """
         num_images = len(images)
-        self.reshape_image_inputs(num_images)
-        self.preprocess_batch(images, targets)
+        
+        self.images = np.zeros((num_images, self.channels, self.height, self.width))
+        self.targets = np.zeros((num_images, self.channels, self.height, self.width))
+        for i in range(num_images):
+            image = images[i]
+            image_out = self.preprocess(image)
+            self.images[i] = image_out
+
+            target = targets[i]
+            target_out = self.preprocess(target)
+            self.targets[i] = target_out
 
 
     def preprocess(self, image):
@@ -76,98 +108,32 @@ class regressor:
         image_out = np.float32(image_out)
         image_out -= np.array(self.mean)
         image_out = np.transpose(image_out, [2, 0, 1])
+
         return image_out
 
-    def preprocess_batch(self, images_batch, targets_batch):
-        """TODO: Docstring for preprocess_batch.
-
-        :arg1: TODO
-        :returns: TODO
-
-        """
-
-        net = self.net
-        num_images = len(images_batch)
-        for i in range(num_images):
-            image = images_batch[i]
-            image_out = self.preprocess(image)
-            net.blobs['image'].data[i] = image_out
-
-            target = targets_batch[i]
-            target_out = self.preprocess(target)
-            net.blobs['target'].data[i] = target_out
-
-
-    def setupNetwork(self, deploy_proto, caffe_model, gpu_id, do_train):
-        """TODO: Docstring for setupNetwork.
-
-        :deploy_proto (string) : deploy prototxt file
-        :caffe_model (string)  : trained caffe model path
-        :gpu_id (integer) : GPU id
-        :do_train (boolean) : training phase or testing phase
-
-        """
-
-        logger = self.logger
-        caffe.set_mode_gpu()
-        caffe.set_device(int(gpu_id))
-        if do_train == True:
-            logger.info('Setting phase to train')
-            # TODO: this part of the code needs to be changed for
-            # training phase
-            if self.solver_file:
-                self.solver = caffe.SGDSolver(self.solver_file)
-                net = self.solver.net
-                net.copy_from(caffe_model)
-            else:
-                logger.error('solver file required')
-                return
-
-            self.phase = caffe.TRAIN
-        else:
-            logger.info('Setting phase to test')
-            net = caffe.Net(deploy_proto, caffe_model, caffe.TEST)
-            self.phase = caffe.TEST
-
-        self.net = net
-        self.num_inputs = net.blobs['image'].data[...].shape[0]
-        self.channels = net.blobs['image'].data[...].shape[1]
-        self.height = net.blobs['image'].data[...].shape[2]
-        self.width = net.blobs['image'].data[...].shape[3]
-
-        if self.num_inputs != 1:
-            logger.error('Network should take exactly one input')
-
-        if self.channels != 1 and self.channels != 3:
-            logger.error('Network should have 1 or 3 channels')
-
     def regress(self, curr_search_region, target_region):
-        """TODO: Docstring for regress.
-        :returns: TODO
-
-        """
         return self.estimate(curr_search_region, target_region)
 
     def estimate(self, curr_search_region, target_region):
-        """TODO: Docstring for estimate.
-
-        :arg1: TODO
-        :returns: TODO
-
-        """
-        net = self.net
-        # reshape the inputs
-
-        net.blobs['image'].data.reshape(1, self.channels, self.height, self.width)
-        net.blobs['target'].data.reshape(1, self.channels, self.height, self.width)
-        net.blobs['bbox'].data.reshape(1, 4, 1, 1)
-
         curr_search_region = self.preprocess(curr_search_region)
         target_region = self.preprocess(target_region)
 
-        net.blobs['image'].data[...] = curr_search_region
-        net.blobs['target'].data[...] = target_region
-        net.forward()
-        bbox_estimate = net.blobs['fc8'].data
+        self.images = curr_search_region.reshape(1, self.channels, self.height, self.width)
+        self.targets = target_region(1, self.channels, self.height, self.width)
+
+        x1  = torch.from_numpy(self.images).float()
+        x2  = torch.from_numpy(self.targets).float()
+
+        # wrap them in Variable
+        if use_gpu:
+            x1  = Variable(x1.cuda())
+            x2  = Variable(x2.cuda())
+        else:
+            x1  = Variable(x1)
+            x2  = Variable(x2)
+
+        # forward
+        output = self.model(x1, x2)
+        bbox_estimate = output.data.numpy()
 
         return bbox_estimate
