@@ -1,5 +1,5 @@
 IMAGENET_FOLDER='~/ILSVRC2014'
-ALOV_FOLDER='/home/devyhia/ALOV'
+ALOV_FOLDER='/home/paperspace/ALOV'
 #--imagenet $IMAGENET_FOLDER \
 
 python -m goturn.train.train \

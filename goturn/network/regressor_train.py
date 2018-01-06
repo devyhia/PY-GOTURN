@@ -11,12 +11,13 @@ import torch
 import torchvision
 import torch.optim as optim
 from torch.autograd import Variable
+from PIL import Image, ImageDraw
 
 from visdom import Visdom
 viz = Visdom()
 
 use_gpu = torch.cuda.is_available()
-visualize_every = 10
+visualize_every = 2
 
 base_lr = 0.000001
 gamma = 0.1
@@ -25,7 +26,7 @@ display = 1
 # max_iter = 450000
 momentum = 0.9
 weight_decay = 0.0005
-snapshot = 50000
+snapshot = 1000
 
 class regressor_train:
 
@@ -40,10 +41,10 @@ class regressor_train:
         self.regressor = regressor(
             self.kNumInputs, logger, 
             train=self.kDoTrain, pretrained_model=pretrained_model)
-        self.optimizer = optim.SGD(
+        self.optimizer = optim.Adam(
             self.regressor.model.classifier.parameters(),
             lr=self.kLearningRate,
-            momentum=momentum,
+            # momentum=momentum,
             weight_decay=weight_decay
         )
         self.logger = logger
@@ -102,14 +103,55 @@ class regressor_train:
         self.regressor.set_images(images, targets)
         self.step()
 
-    def visualize_train(self):
-        viz.images(self.regressor.images, opts=dict(title='Random Images!', caption='How random.'))
-        viz.images(self.regressor.targets, opts=dict(title='Random Targets!', caption='How random.'))
+    def visualize_train(self, y, output, loss):
+        if self.current_step % visualize_every == 0:
+            viz.images(self.regressor.images, opts=dict(title='Random Images!', caption='How random.'))
+            viz.images(self.regressor.targets, opts=dict(title='Random Targets!', caption='How random.'))
+
+            y = self.regressor.bboxes
+
+            # Logging
+            viz.text("""
+                        Ground Truth: {} <br/>
+                        Prediction: {} <br/>
+                        Loss: {}
+                    """.format(y[0], output[0], loss.data[0]),
+                    win="Iteration__Text")
+
+            # Visualization
+            search_image = self.regressor.targets[0]
+            search_image = search_image.reshape((self.regressor.height, self.regressor.width, self.regressor.channels))
+            search_image += [104, 117, 123]
+            search_image = search_image.astype(np.uint8)
+
+            search_image = Image.fromarray(search_image)
+            draw = ImageDraw.Draw(search_image)
+
+            unscale_ratio = 10. / 227
+
+            # (output.data.gpu() if use_gpu else output.data.cpu())
+            # (y.data.gpu() if use_gpu else y.data.cpu())
+            self.logger.info(y)
+            self.logger.info(output)
+            draw.rectangle(unscale_ratio * y[0], outline='red')
+            draw.rectangle(unscale_ratio * output[0], outline='green')
+
+            del draw
+
+            viz.image(np.array(search_image).transpose(2, 0, 1), win="Iteration__Image", opts=dict(
+                caption='Itr. {}'.format(self.current_step)
+            ))
+
+    def take_snapshot(self):
+        """
+        Saves a snapshot of the current weights
+        """
+        path = 'model_best_loss.pth'
+        if self.current_step % snapshot == 0:
+            torch.save(self.regressor.model.state_dict(), path)
 
     def step(self):
         images, targets, bboxes = self.regressor.images, self.regressor.targets, self.regressor.bboxes
-
-        self.logger.info('images: %d' % len(images))
 
         x1  = torch.from_numpy(images).float()
         x2  = torch.from_numpy(targets).float()
@@ -142,4 +184,8 @@ class regressor_train:
         # Update Learning Rate
         self.update_learning_rate()
 
-        # self.visualize_train()
+        # Take Snapshots
+        self.take_snapshot()
+
+        # Visualize Training
+        # self.visualize_train(y, output, loss)
