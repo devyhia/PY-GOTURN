@@ -41,10 +41,10 @@ class regressor_train:
         self.regressor = regressor(
             self.kNumInputs, logger, 
             train=self.kDoTrain, pretrained_model=pretrained_model)
-        self.optimizer = optim.Adam(
+        self.optimizer = optim.SGD(
             self.regressor.model.classifier.parameters(),
             lr=self.kLearningRate,
-            # momentum=momentum,
+            momentum=momentum,
             weight_decay=weight_decay
         )
         self.logger = logger

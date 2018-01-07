@@ -119,7 +119,7 @@ class regressor:
         target_region = self.preprocess(target_region)
 
         self.images = curr_search_region.reshape(1, self.channels, self.height, self.width)
-        self.targets = target_region(1, self.channels, self.height, self.width)
+        self.targets = target_region.reshape(1, self.channels, self.height, self.width)
 
         x1  = torch.from_numpy(self.images).float()
         x2  = torch.from_numpy(self.targets).float()
@@ -134,6 +134,10 @@ class regressor:
 
         # forward
         output = self.model(x1, x2)
+        
+        if use_gpu:
+            output = output.cpu()
+
         bbox_estimate = output.data.numpy()
 
         return bbox_estimate

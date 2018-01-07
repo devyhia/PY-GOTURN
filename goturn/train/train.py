@@ -21,7 +21,7 @@ setproctitle.setproctitle('TRAIN_TRACKER_IMAGENET_ALOV')
 logger = setup_logger(logfile=None)
 
 ap = argparse.ArgumentParser()
-# ap.add_argument("-imagenet", "--imagenet", required = True, help = "Path to ImageNet folder")
+ap.add_argument("-imagenet", "--imagenet", required = True, help = "Path to ImageNet folder")
 ap.add_argument("-alov", "--alov", required = True, help = "Path to Alov folder")
 ap.add_argument("-pretrained_model", "--pretrained_model", default=None, required = False, help = "Path to pytorch pretraianed model")
 ap.add_argument("-lamda_shift", "--lamda_shift", required = True, help = "lamda shift")
@@ -71,10 +71,10 @@ def main(args):
 
     logger.info('Loading training data')
     # Load imagenet training images and annotations
-    # imagenet_folder = os.path.join(args['imagenet'], 'images')
-    # imagenet_annotations_folder = os.path.join(args['imagenet'], 'gt')
-    # objLoaderImgNet = loader_imagenet(imagenet_folder, imagenet_annotations_folder, logger)
-    # train_imagenet_images = objLoaderImgNet.loaderImageNetDet()
+    imagenet_folder = os.path.join(args['imagenet'], 'images')
+    imagenet_annotations_folder = os.path.join(args['imagenet'], 'gt')
+    objLoaderImgNet = loader_imagenet(imagenet_folder, imagenet_annotations_folder, logger)
+    train_imagenet_images = objLoaderImgNet.loaderImageNetDet()
 
     # Load alov training images and annotations
     alov_folder = os.path.join(args['alov'], 'images')
@@ -89,7 +89,7 @@ def main(args):
     objTrackTrainer = tracker_trainer(objExampleGen, objRegTrain, logger)
 
     while objTrackTrainer.num_batches_ < kNumBatches:
-        # train_image(objLoaderImgNet, train_imagenet_images, objTrackTrainer)
+        train_image(objLoaderImgNet, train_imagenet_images, objTrackTrainer)
         train_video(train_alov_videos, objTrackTrainer)
 
 
