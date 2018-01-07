@@ -4,6 +4,6 @@
 # Description: bounding box class
 
 
-CAFFE_PATH = '/usr/local/caffe/python'
+CAFFE_PATH = '/home/devyhia/caffe-master/python'
 DEBUG = False
 OPENCV_VERSION=2
