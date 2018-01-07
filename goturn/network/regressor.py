@@ -37,7 +37,7 @@ class regressor:
         self.train = train
         
         self.model = GoNet()
-        self.loss_fn = torch.nn.L1Loss()
+        self.loss_fn = torch.nn.L1Loss(size_average=False)
         
         if pretrained_model:
             logger.info("=> loading checkpoint '{}'".format(pretrained_model))
