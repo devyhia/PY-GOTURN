@@ -2,10 +2,13 @@ IMAGENET_FOLDER='/home/devyhia/ILSVRC2014'
 ALOV_FOLDER='/home/devyhia/ALOV'
 INIT_CAFFEMODEL='nets/models/weights_init/tracker_init.caffemodel'
 #INIT_CAFFEMODEL='nets//models/pretrained_model/tracker.caffemodel'
-TRACKER_PROTO='nets/tracker.prototxt'
-SOLVER_PROTO='nets/solver.prototxt'
+TRACKER_PROTO='nets/tracker_skip.prototxt'
+# TRACKER_PROTO='nets/tracker_ensemble1.prototxt'
+SOLVER_PROTO='nets/solver_skip.prototxt'
+PROC='SKIP'
 
 python -m goturn.train.train \
+--proc $PROC \
 --imagenet $IMAGENET_FOLDER \
 --alov $ALOV_FOLDER \
 --init_caffemodel $INIT_CAFFEMODEL \

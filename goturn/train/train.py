@@ -18,11 +18,10 @@ import os
 import caffe
 import numpy as np
 
-
-setproctitle.setproctitle('TRAIN_TRACKER_IMAGENET_ALOV')
 logger = setup_logger(logfile=None)
 
 ap = argparse.ArgumentParser()
+ap.add_argument("-proc", "--proc", required = True, help = "Process Name")
 ap.add_argument("-imagenet", "--imagenet", required = True, help = "Path to ImageNet folder")
 ap.add_argument("-alov", "--alov", required = True, help = "Path to Alov folder")
 ap.add_argument("-init_caffemodel", "--init_caffemodel", required = True, help = "Path to caffe Init model")
@@ -38,7 +37,6 @@ ap.add_argument("-gpu_id", "--gpu_id", required = True, help = "gpu id")
 RANDOM_SEED = 800
 GPU_ONLY = True
 kNumBatches = 500000
-
 
 def train_image(image_loader, images, tracker_trainer):
     """TODO: Docstring for train_image.
@@ -107,4 +105,5 @@ def main(args):
 
 if __name__ == '__main__':
     args = vars(ap.parse_args())
+    setproctitle.setproctitle('TRAIN_TRACKER_%s' % args['proc'])
     main(args)
