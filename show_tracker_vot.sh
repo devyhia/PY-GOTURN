@@ -1,6 +1,9 @@
-#DEPLOY_PROTO='./nets/tracker.prototxt'		 
 MODEL='/home/devyhia/PY-GOTURN/model_best_loss.pth'
-TEST_DATA_PATH='/home/devyhia/VOT'
+DEPLOY_PROTO='./nets/tracker.prototxt'		 
+DEPLOY_PROTO='./nets/tracker_1_fcs.prototxt'
+#CAFFE_MODEL='./nets/models/pretrained_model/tracker.caffemodel'
+CAFFE_MODEL='./dump_model_1_fcs_iter_50000.caffemodel'
+TEST_DATA_PATH='/home/devyhia/VOT'		
 
 python -m goturn.test.show_tracker_vot \
 	--m $MODEL \
