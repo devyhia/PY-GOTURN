@@ -1,4 +1,4 @@
-MODEL='/home/devyhia/PY-GOTURN/model_best_loss.pth'
+MODEL='/home/devyhia/PY-GOTURN/py_model_50000.pth'
 DEPLOY_PROTO='./nets/tracker.prototxt'		 
 DEPLOY_PROTO='./nets/tracker_1_fcs.prototxt'
 #CAFFE_MODEL='./nets/models/pretrained_model/tracker.caffemodel'

@@ -26,7 +26,7 @@ display = 1
 # max_iter = 450000
 momentum = 0.9
 weight_decay = 0.0005
-snapshot = 1000
+snapshot = 50000
 
 class regressor_train:
 
@@ -41,12 +41,32 @@ class regressor_train:
         self.regressor = regressor(
             self.kNumInputs, logger, 
             train=self.kDoTrain, pretrained_model=pretrained_model)
+        
+        trainable_weights = []
+        trainable_bias = []
+
+        for name, param in self.regressor.model.classifier.named_parameters():
+            if 'weight' in name:
+                trainable_weights.append(param)
+            elif 'bias' in name:
+                trainable_bias.append(param)
+
         self.optimizer = optim.SGD(
-            self.regressor.model.classifier.parameters(),
+            [
+                {
+                    'params': trainable_weights,
+                    'lr': self.kLearningRate * 10
+                },
+                {
+                    'params': trainable_bias,
+                    'lr': self.kLearningRate * 20
+                }
+            ],
             lr=self.kLearningRate,
             momentum=momentum,
             weight_decay=weight_decay
         )
+
         self.logger = logger
         self.current_step = 0
         
@@ -146,7 +166,7 @@ class regressor_train:
         """
         Saves a snapshot of the current weights
         """
-        path = 'model_best_loss.pth'
+        path = 'model_%s_%i.pth' % (self.regressor.model.name, self.current_step)
         if self.current_step % snapshot == 0:
             torch.save(self.regressor.model.state_dict(), path)
 

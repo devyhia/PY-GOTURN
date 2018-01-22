@@ -70,17 +70,17 @@ def main(args):
 
     logger.info('Loading training data')
     # Load imagenet training images and annotations
-    imagenet_folder = os.path.join(args['imagenet'], 'images')
-    imagenet_annotations_folder = os.path.join(args['imagenet'], 'gt')
-    objLoaderImgNet = loader_imagenet(imagenet_folder, imagenet_annotations_folder, logger)
-    train_imagenet_images = objLoaderImgNet.loaderImageNetDet()
+    # imagenet_folder = os.path.join(args['imagenet'], 'images')
+    # imagenet_annotations_folder = os.path.join(args['imagenet'], 'gt')
+    # objLoaderImgNet = loader_imagenet(imagenet_folder, imagenet_annotations_folder, logger)
+    # train_imagenet_images = objLoaderImgNet.loaderImageNetDet()
 
     # Load alov training images and annotations
     alov_folder = os.path.join(args['alov'], 'images')
     alov_annotations_folder = os.path.join(args['alov'], 'gt')
     objLoaderAlov = loader_alov(alov_folder, alov_annotations_folder, logger)
     objLoaderAlov.loaderAlov()
-    train_alov_videos = objLoaderAlov.get_videos()
+    train_alov_videos = objLoaderAlov.get_videos()[:1]
 
     # create example generator and setup the network
     objExampleGen = example_generator(float(args['lamda_shift']), float(args['lamda_scale']), float(args['min_scale']), float(args['max_scale']), logger)
@@ -88,7 +88,7 @@ def main(args):
     objTrackTrainer = tracker_trainer(objExampleGen, objRegTrain, logger)
 
     while objTrackTrainer.num_batches_ < kNumBatches:
-        train_image(objLoaderImgNet, train_imagenet_images, objTrackTrainer)
+        # train_image(objLoaderImgNet, train_imagenet_images, objTrackTrainer)
         train_video(train_alov_videos, objTrackTrainer)
 
 

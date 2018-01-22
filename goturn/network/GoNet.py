@@ -25,22 +25,36 @@ class GoNet(nn.Module):
     '''
     def __init__(self):
         super(GoNet, self).__init__()
-        caffenet = models.alexnet(pretrained=True)
-        for param in caffenet.parameters():
+        self.name = "alexnet"
+        alex = models.alexnet(pretrained=True)
+        for param in alex.parameters():
             param.requires_grad = False
-        self.features = caffenet.features
+        self.features = alex.features
+        # self.classifier = nn.LSTM(
+        #     input_size=256*6*6*2,
+        #     hidden_size=4096,
+        #     num_layers=2,
+        #     dropout=0.5)
         self.classifier = nn.Sequential(
-                nn.Linear(256*6*6*2, 4096),
-                nn.ReLU(inplace=True),
-                nn.Dropout(p=0.05),
-                nn.Linear(4096, 4096),
-                nn.ReLU(inplace=True),
-                nn.Dropout(p=0.05),
-                nn.Linear(4096,4096),
-                nn.ReLU(inplace=True),
-                nn.Dropout(p=0.05),
-                nn.Linear(4096, 4),
-                )
+            nn.Linear(256*6*6*2, 4096),
+            nn.ReLU(),
+            nn.Dropout(),
+            nn.Linear(4096, 4096),
+            nn.ReLU(),
+            nn.Dropout(),
+            nn.Linear(4096,4096),
+            nn.ReLU(),
+            nn.Dropout(),
+            nn.Linear(4096, 4)
+        )
+        
+        self.weight_init()
+    
+    def weight_init(self):
+        for m in self.classifier.modules():
+            if isinstance(m, nn.Linear):
+                m.bias.data.fill_(1)
+                m.weight.data.normal_(0, 0.005)
 
     # feed forward through the neural net
     def forward(self, x, y):
