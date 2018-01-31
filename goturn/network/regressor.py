@@ -168,6 +168,10 @@ class regressor:
         net.blobs['image'].data[...] = curr_search_region
         net.blobs['target'].data[...] = target_region
         net.forward()
-        bbox_estimate = net.blobs['fc8'].data
+        bbox_estimate = (
+            net.blobs.get('fc8') or 
+            net.blobs.get('fc8_new') or
+            net.blobs.get('ensemble-fc8')
+        ).data
 
         return bbox_estimate
