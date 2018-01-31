@@ -15,7 +15,7 @@ from ..helper import config
 import torch
 import torchvision
 from torch.autograd import Variable
-from .GoNet import GoNet
+from .GoNetLSTM import GoNet
 
 use_gpu = torch.cuda.is_available()
 

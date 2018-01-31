@@ -6,7 +6,7 @@ INIT_CAFFEMODEL='nets/models/weights_init/tracker_init.caffemodel'
 TRACKER_PROTO='nets/tracker_skip.prototxt'
 # TRACKER_PROTO='nets/tracker_ensemble1.prototxt'
 SOLVER_PROTO='nets/solver_skip.prototxt'
-PROC='PY_ALEX'
+PROC='PYLSTM'
 
 # --pretrained_model $PRE_MODEL \
 

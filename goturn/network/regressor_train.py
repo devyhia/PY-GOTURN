@@ -26,7 +26,7 @@ display = 1
 # max_iter = 450000
 momentum = 0.9
 weight_decay = 0.0005
-snapshot = 50000
+snapshot = 1000
 
 class regressor_train:
 
@@ -45,13 +45,19 @@ class regressor_train:
         trainable_weights = []
         trainable_bias = []
 
-        for name, param in self.regressor.model.classifier.named_parameters():
+        for name, param in self.regressor.model.lstm.named_parameters():
+            if 'weight' in name:
+                trainable_weights.append(param)
+            elif 'bias' in name:
+                trainable_bias.append(param)
+        
+        for name, param in self.regressor.model.fc.named_parameters():
             if 'weight' in name:
                 trainable_weights.append(param)
             elif 'bias' in name:
                 trainable_bias.append(param)
 
-        self.optimizer = optim.SGD(
+        self.optimizer = optim.Adam(
             [
                 {
                     'params': trainable_weights,
@@ -63,7 +69,7 @@ class regressor_train:
                 }
             ],
             lr=self.kLearningRate,
-            momentum=momentum,
+            # momentum=momentum,
             weight_decay=weight_decay
         )
 

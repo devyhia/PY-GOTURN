@@ -70,10 +70,10 @@ def main(args):
 
     logger.info('Loading training data')
     # Load imagenet training images and annotations
-    # imagenet_folder = os.path.join(args['imagenet'], 'images')
-    # imagenet_annotations_folder = os.path.join(args['imagenet'], 'gt')
-    # objLoaderImgNet = loader_imagenet(imagenet_folder, imagenet_annotations_folder, logger)
-    # train_imagenet_images = objLoaderImgNet.loaderImageNetDet()
+    imagenet_folder = os.path.join(args['imagenet'], 'images')
+    imagenet_annotations_folder = os.path.join(args['imagenet'], 'gt')
+    objLoaderImgNet = loader_imagenet(imagenet_folder, imagenet_annotations_folder, logger)
+    train_imagenet_images = objLoaderImgNet.loaderImageNetDet()
 
     # Load alov training images and annotations
     alov_folder = os.path.join(args['alov'], 'images')
@@ -88,7 +88,7 @@ def main(args):
     objTrackTrainer = tracker_trainer(objExampleGen, objRegTrain, logger)
 
     while objTrackTrainer.num_batches_ < kNumBatches:
-        # train_image(objLoaderImgNet, train_imagenet_images, objTrackTrainer)
+        train_image(objLoaderImgNet, train_imagenet_images, objTrackTrainer)
         train_video(train_alov_videos, objTrackTrainer)
 
 
