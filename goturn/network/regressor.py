@@ -9,13 +9,14 @@ import glob
 import numpy as np
 import sys
 import cv2
+import time
 from ..helper import config
 
 # Torch Imports
 import torch
 import torchvision
 from torch.autograd import Variable
-from .GoNetLSTM import GoNet
+from .GoNetLSTM_Deeper import GoNet
 
 use_gpu = torch.cuda.is_available()
 
@@ -36,7 +37,7 @@ class regressor:
         self.modified_params = False
         self.train = train
         
-        self.model = GoNet()
+        self.model = GoNet(init_weights=False if pretrained_model else True)
         self.loss_fn = torch.nn.L1Loss(size_average=False)
         
         if pretrained_model:
@@ -115,6 +116,7 @@ class regressor:
         return self.estimate(curr_search_region, target_region)
 
     def estimate(self, curr_search_region, target_region):
+        t1 = time.time()
         curr_search_region = self.preprocess(curr_search_region)
         target_region = self.preprocess(target_region)
 
@@ -139,5 +141,9 @@ class regressor:
             output = output.cpu()
 
         bbox_estimate = output.data.numpy()
+
+        t2 = time.time()
+
+        self.logger.critical('Runtime= {}'.format(t2 - t1))
 
         return bbox_estimate

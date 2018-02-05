@@ -3,6 +3,7 @@
 # Name: Nrupatunga
 # Description: 
 
+import os
 import sys
 import numpy as np
 from regressor import regressor
@@ -12,6 +13,7 @@ import torchvision
 import torch.optim as optim
 from torch.autograd import Variable
 from PIL import Image, ImageDraw
+from glob import glob
 
 from visdom import Visdom
 viz = Visdom()
@@ -51,7 +53,7 @@ class regressor_train:
             elif 'bias' in name:
                 trainable_bias.append(param)
         
-        for name, param in self.regressor.model.fc.named_parameters():
+        for name, param in self.regressor.model.classifier.named_parameters():
             if 'weight' in name:
                 trainable_weights.append(param)
             elif 'bias' in name:
@@ -174,6 +176,13 @@ class regressor_train:
         """
         path = 'model_%s_%i.pth' % (self.regressor.model.name, self.current_step)
         if self.current_step % snapshot == 0:
+            # Remove previous snapshots
+            for s in glob('model_%s_*.pth' % (self.regressor.model.name)):
+                self.logger.info('Removing {} ...'.format(s))
+                os.remove(s)
+            
+            # Save new snapshot
+            self.logger.info('Saving {} ...'.format(path))
             torch.save(self.regressor.model.state_dict(), path)
 
     def step(self):

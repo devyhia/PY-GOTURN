@@ -1,4 +1,4 @@
-MODEL='/home/devyhia/PY-GOTURN/model_alexnet_3000.pth'
+MODEL='model_lstm_deeper_46000.pth'
 DEPLOY_PROTO='./nets/tracker.prototxt'		 
 DEPLOY_PROTO='./nets/tracker_1_fcs.prototxt'
 #CAFFE_MODEL='./nets/models/pretrained_model/tracker.caffemodel'
@@ -7,4 +7,4 @@ TEST_DATA_PATH='/home/devyhia/VOT'
 
 python -m goturn.test.show_tracker_vot \
 	--m $MODEL \
-	--i $TEST_DATA_PATH 
+	--i $TEST_DATA_PATH
