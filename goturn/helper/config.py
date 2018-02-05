@@ -4,6 +4,6 @@
 # Description: bounding box class
 
 
-CAFFE_PATH = '/home/devyhia/caffe-master/python'
+CAFFE_PATH = '/home/devyhia/miniconda2/include/caffe/'
 DEBUG = False
 OPENCV_VERSION=2

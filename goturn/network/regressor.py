@@ -9,8 +9,13 @@ import glob
 import numpy as np
 import sys
 import cv2
+import time
 from ..helper import config
-sys.path.insert(0, config.CAFFE_PATH)
+# sys.path.insert(0, '/home/devyhia/miniconda2/include/')
+# sys.path.remove('/home/devyhia/caffe-master/python')
+
+print(sys.path)
+
 import caffe
 
 class regressor:
@@ -155,6 +160,8 @@ class regressor:
         :returns: TODO
 
         """
+        t1 = time.time()
+
         net = self.net
         # reshape the inputs
 
@@ -173,5 +180,9 @@ class regressor:
             net.blobs.get('fc8_new') or
             net.blobs.get('ensemble-fc8')
         ).data
+
+        t2 = time.time()
+
+        self.logger.critical('Runtime= {}'.format(t2 - t1))
 
         return bbox_estimate

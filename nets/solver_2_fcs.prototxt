@@ -1,0 +1,13 @@
+net:'/home/devyhia/PY-GOTURN/nets/tracker_2_fcs.prototxt'
+base_lr: 0.000001
+lr_policy: "step"
+gamma: 0.1
+stepsize: 100000
+display: 1
+max_iter: 450000
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 50000
+snapshot_prefix: "./dump_model_2_fcs" # change as per your need
+device_id: 0
+solver_mode: GPU
